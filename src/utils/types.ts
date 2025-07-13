@@ -214,7 +214,8 @@ export const enum OptionType {
     SELECT,
     SLIDER,
     COMPONENT,
-    CUSTOM
+    CUSTOM,
+    COLOR
 }
 
 export type SettingsDefinition = Record<string, PluginSettingDef>;
