@@ -9,14 +9,59 @@ import { React } from "@webpack/common";
 
 import { defaultConfigs } from "./configs";
 
-// Helper to safely access settings
-function safeSet(setter: (value: any) => void, value: any) {
+// Helper to safely access settings with proper error handling
+function safeSet<T>(setter: (value: T) => void, value: T, retries = 3): void {
     try {
         setter(value);
     } catch (e) {
-        console.warn("Settings not ready yet, queuing update");
-        setTimeout(() => safeSet(setter, value), 100);
+        if (retries > 0) {
+            console.warn(`Settings not ready yet, retrying... (${4 - retries}/3)`);
+            setTimeout(() => safeSet(setter, value, retries - 1), 100);
+        } else {
+            console.error("Failed to update setting after multiple attempts:", e);
+            showSettingsError("Failed to update setting. Please try again.");
+        }
     }
+}
+
+// Show user-friendly error notifications for settings
+function showSettingsError(message: string): void {
+    // Create a simple error notification
+    const notification = document.createElement("div");
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #f04747;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 4px;
+        font-family: Whitney, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        z-index: 10001;
+        max-width: 300px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    `;
+
+    notification.textContent = `HabitatRain Settings: ${message}`;
+    document.body.appendChild(notification);
+
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 4000);
+}
+
+// Validate setting values
+function validateNumber(value: unknown, min: number, max: number, defaultValue: number): number {
+    const num = Number(value);
+    if (isNaN(num) || num < min || num > max) {
+        console.warn(`Invalid setting value ${value}, using default ${defaultValue}`);
+        return defaultValue;
+    }
+    return num;
 }
 
 export const settings = definePluginSettings({
@@ -117,10 +162,11 @@ export const settings = definePluginSettings({
         step: 1,
         markers: [-180, -90, -45, -15, 0, 15, 45, 90, 180],
         onChange: (value: number) => {
+            const validatedValue = validateNumber(value, -180, 180, 0);
             safeSet(() => {
-                settings.store.rainAngle = value;
+                settings.store.rainAngle = validatedValue;
                 import("../components/WebGLRainEffect").then(m => m.update());
-            }, value);
+            }, validatedValue);
         },
     },
     rainSpeed: {
@@ -132,10 +178,27 @@ export const settings = definePluginSettings({
         step: 0.01,
         markers: [0.01, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0],
         onChange: (value: number) => {
+            const validatedValue = validateNumber(value, 0.01, 10.0, 1.0);
             safeSet(() => {
-                settings.store.rainSpeed = value;
+                settings.store.rainSpeed = validatedValue;
                 import("../components/WebGLRainEffect").then(m => m.update());
-            }, value);
+            }, validatedValue);
+        },
+    },
+    enablePuddles: {
+        type: OptionType.BOOLEAN,
+        description: "Enable puddle reflections (experimental)",
+        default: false,
+        onChange: (value: boolean) => {
+            import("../components/WebGLRainEffect").then(m => m.reset());
+        },
+    },
+    enableLighting: {
+        type: OptionType.BOOLEAN,
+        description: "Enable dynamic lighting effects (experimental)",
+        default: false,
+        onChange: (value: boolean) => {
+            import("../components/WebGLRainEffect").then(m => m.reset());
         },
     },
     showForestBackground: {

@@ -64,7 +64,7 @@ export async function setup() {
 
             forestBackground.addEventListener("canplay", onCanPlay);
             forestBackground.addEventListener("error", onError);
-            forestBackground.load();
+            (forestBackground as HTMLVideoElement).load();
         });
 
         try {

@@ -142,3 +142,87 @@ export const timeOfDayConfigs = {
         mistMod: 1.0
     }
 };
+
+// Seasonal weather patterns
+export const seasonalConfigs = {
+    SPRING: {
+        name: "Spring Showers",
+        drizzleChance: 0.4,
+        lightRainChance: 0.3,
+        heavyRainChance: 0.2,
+        thunderstormChance: 0.1,
+        temperatureMod: 1.0,
+        mistMod: 0.8,
+        windVariation: 8,
+        description: "Gentle spring rains with occasional showers"
+    },
+    SUMMER: {
+        name: "Summer Storms",
+        drizzleChance: 0.1,
+        lightRainChance: 0.2,
+        heavyRainChance: 0.3,
+        thunderstormChance: 0.4,
+        temperatureMod: 1.2,
+        mistMod: 0.6,
+        windVariation: 12,
+        description: "Intense summer thunderstorms and downpours"
+    },
+    AUTUMN: {
+        name: "Autumn Drizzle",
+        drizzleChance: 0.5,
+        lightRainChance: 0.3,
+        heavyRainChance: 0.15,
+        thunderstormChance: 0.05,
+        temperatureMod: 0.9,
+        mistMod: 1.1,
+        windVariation: 10,
+        description: "Persistent autumn drizzle with misty mornings"
+    },
+    WINTER: {
+        name: "Winter Rain",
+        drizzleChance: 0.3,
+        lightRainChance: 0.4,
+        heavyRainChance: 0.25,
+        thunderstormChance: 0.05,
+        temperatureMod: 0.7,
+        mistMod: 1.3,
+        windVariation: 15,
+        description: "Cold winter rains with heavy mist"
+    }
+};
+
+// Weather event configurations for special patterns
+export const weatherEventConfigs = {
+    MONSOON: {
+        name: "Monsoon Season",
+        duration: 120 * 60 * 1000, // 2 hours
+        intensity: 0.9,
+        consistency: 0.8,
+        thunderChance: 0.3,
+        description: "Extended period of heavy rainfall"
+    },
+    SQUALL: {
+        name: "Squall Line",
+        duration: 15 * 60 * 1000, // 15 minutes
+        intensity: 1.2,
+        consistency: 0.9,
+        thunderChance: 0.7,
+        description: "Brief but intense storm system"
+    },
+    DRIZZLE_DAY: {
+        name: "All-Day Drizzle",
+        duration: 180 * 60 * 1000, // 3 hours
+        intensity: 0.2,
+        consistency: 0.95,
+        thunderChance: 0.01,
+        description: "Persistent light drizzle throughout the day"
+    },
+    CLEARING_TREND: {
+        name: "Clearing Weather",
+        duration: 60 * 60 * 1000, // 1 hour
+        intensity: 0.1,
+        consistency: 0.3,
+        thunderChance: 0.001,
+        description: "Weather gradually clearing up"
+    }
+};

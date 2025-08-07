@@ -14,6 +14,24 @@ let mistTimer = 0;
 let rafId: number | null = null;
 let lastFrameTime: number | null = null;
 
+// Enhanced mist system with particle effects
+interface MistParticle {
+    x: number;
+    y: number;
+    size: number;
+    opacity: number;
+    velocity: { x: number; y: number; };
+    life: number;
+    maxLife: number;
+    type: "droplet" | "vapor" | "fog";
+}
+
+const mistParticles: MistParticle[] = [];
+const particleCanvas: HTMLCanvasElement | null = null;
+const particleCtx: CanvasRenderingContext2D | null = null;
+const lastParticleSpawn = 0;
+const atmosphericDepth = 1.0;
+
 function mistFrame(now: number) {
     if (!mistLayers.length) return;
     const delta = (now - (lastFrameTime ?? now)) / 1000;

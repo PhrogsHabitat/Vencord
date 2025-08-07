@@ -4,12 +4,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-import { timeOfDayConfigs, weatherPhaseConfigs } from "../utils/configs";
+import { seasonalConfigs, timeOfDayConfigs, weatherPhaseConfigs } from "../utils/configs";
 import { lerp } from "../utils/helpers";
 import { settings } from "../utils/settingsStore";
 
 type WeatherPhase = "DRIZZLE" | "LIGHT_RAIN" | "HEAVY_RAIN" | "DOWNPOUR" | "THUNDERSTORM" | "CLEARING";
 type TimeOfDay = "DAWN" | "MORNING" | "AFTERNOON" | "DUSK" | "NIGHT";
+type Season = "SPRING" | "SUMMER" | "AUTUMN" | "WINTER";
+type WeatherEvent = "MONSOON" | "SQUALL" | "DRIZZLE_DAY" | "CLEARING_TREND" | null;
 
 const WEATHER_CYCLE_DURATION = 45 * 60 * 1000;
 const PHASE_TRANSITION_TIME = 5 * 60 * 1000;
@@ -23,6 +25,9 @@ let phaseProgress: number = 0;
 let currentWindDirection: number = -3;
 let weatherIntensity: number = 0.5;
 let timeOfDay: TimeOfDay = "AFTERNOON";
+let currentSeason: Season = "SPRING";
+const activeWeatherEvent: WeatherEvent = null;
+const weatherEventStartTime: number = 0;
 
 export function start() {
     if (dynamicWeatherInterval) stop();
@@ -202,4 +207,66 @@ function updateTimeOfDay() {
     else if (hour >= 12 && hour < 17) timeOfDay = "AFTERNOON";
     else if (hour >= 17 && hour < 21) timeOfDay = "DUSK";
     else timeOfDay = "NIGHT";
+}
+
+function updateSeason() {
+    const month = new Date().getMonth(); // 0-11
+    if (month >= 2 && month <= 4) currentSeason = "SPRING";
+    else if (month >= 5 && month <= 7) currentSeason = "SUMMER";
+    else if (month >= 8 && month <= 10) currentSeason = "AUTUMN";
+    else currentSeason = "WINTER";
+}
+
+function triggerWeatherEvent(): WeatherEvent {
+    const rand = Math.random();
+    const seasonConfig = seasonalConfigs[currentSeason];
+
+    // Higher chance of events during certain seasons
+    const eventChance = currentSeason === "SUMMER" ? 0.15 :
+        currentSeason === "AUTUMN" ? 0.12 : 0.08;
+
+    if (rand < eventChance) {
+        if (rand < 0.03) return "MONSOON";
+        if (rand < 0.06) return "SQUALL";
+        if (rand < 0.10) return "DRIZZLE_DAY";
+        return "CLEARING_TREND";
+    }
+
+    return null;
+}
+
+function determineNextPhaseWithSeason(current: WeatherPhase): WeatherPhase {
+    const rand = Math.random();
+    const hour = new Date().getHours();
+    const seasonConfig = seasonalConfigs[currentSeason];
+
+    // Adjust probabilities based on season
+    const stormChance = (hour >= 12 && hour <= 18 ? 0.4 : 0.2) *
+        (seasonConfig.thunderstormChance / 0.25); // Normalize to summer baseline
+    const clearingChance = (hour >= 21 || hour <= 6 ? 0.5 : 0.2);
+
+    switch (current) {
+        case "DRIZZLE":
+            return rand < seasonConfig.lightRainChance ? "LIGHT_RAIN" : "CLEARING";
+        case "LIGHT_RAIN":
+            if (rand < seasonConfig.drizzleChance * 0.5) return "DRIZZLE";
+            if (rand < seasonConfig.heavyRainChance) return "HEAVY_RAIN";
+            if (rand < seasonConfig.thunderstormChance + 0.3) return "THUNDERSTORM";
+            return "CLEARING";
+        case "HEAVY_RAIN":
+            if (rand < 0.2) return "LIGHT_RAIN";
+            if (rand < 0.5) return "DOWNPOUR";
+            if (rand < stormChance + 0.5) return "THUNDERSTORM";
+            return "CLEARING";
+        case "DOWNPOUR":
+            if (rand < 0.3) return "HEAVY_RAIN";
+            if (rand < stormChance + 0.3) return "THUNDERSTORM";
+            return "CLEARING";
+        case "THUNDERSTORM":
+            if (rand < 0.7) return "HEAVY_RAIN";
+            return "CLEARING";
+        case "CLEARING":
+            return rand < clearingChance ? "DRIZZLE" : "LIGHT_RAIN";
+        default: return "LIGHT_RAIN";
+    }
 }
