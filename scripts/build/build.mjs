@@ -22,7 +22,11 @@
 import { readdir } from "fs/promises";
 import { join } from "path";
 
+
 import { BUILD_TIMESTAMP, commonOpts, exists, globPlugins, IS_DEV, IS_REPORTER, IS_STANDALONE, IS_UPDATER_DISABLED, resolvePluginName, VERSION, commonRendererPlugins, watch, buildOrWatchAll, stringifyValues } from "./common.mjs";
+
+// Add support for --redirectCSS build flag
+export const IS_REDIRECT_CSS = process.argv.includes("--redirectCSS");
 
 const defines = stringifyValues({
     IS_STANDALONE,
@@ -33,7 +37,8 @@ const defines = stringifyValues({
     IS_EXTENSION: false,
     IS_USERSCRIPT: false,
     VERSION,
-    BUILD_TIMESTAMP
+    BUILD_TIMESTAMP,
+    IS_REDIRECT_CSS // Add this define for CSS redirection
 });
 
 if (defines.IS_STANDALONE === "false") {

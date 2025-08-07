@@ -273,3 +273,5 @@ type ResolveUseSettings<T extends object> = {
     : Key
     : never;
 };
+
+export { OptionType };
